@@ -4,9 +4,14 @@
 
 CC = g++
 
-# Uncomment one of the following to switch between debug and opt mode
-#OPT = -O2 -DNDEBUG
-OPT = -g2 -fPIC
+#-----------------------------------------------
+# Uncomment exactly one of the lines labelled (A), (B), and (C) below
+# to switch between compilation modes.
+
+OPT = -O2 -DNDEBUG       # (A) Production use (optimized mode)
+# OPT = -g2              # (B) Debug mode, w/ full line-level debugging symbols
+# OPT = -O2 -g2 -DNDEBUG # (C) Profiling mode: opt, but w/debugging symbols
+#-----------------------------------------------
 
 CFLAGS = -c -DLEVELDB_PLATFORM_STD -I. -I./include $(OPT)
 
@@ -69,6 +74,7 @@ TESTS = \
 
 PROGRAMS = db_bench $(TESTS)
 
+<<<<<<< HEAD
 all: build/build_config.h libleveldb.a $(PROGRAMS)
 
 build/build_config.h:
@@ -76,12 +82,31 @@ build/build_config.h:
 
 libleveldb.a: $(LIBOBJECTS)
 	ar rcs $@ $(LIBOBJECTS)
+=======
+LIBRARY = libleveldb.a
+
+ifeq ($(PLATFORM), IOS)
+# Only XCode can build executable applications for iOS.
+all: $(LIBRARY)
+else
+all: $(PROGRAMS) $(LIBRARY)
+endif
+>>>>>>> master
 
 check: $(TESTS)
 	for t in $(TESTS); do echo "***** Running $$t"; ./$$t || exit 1; done
 
 clean:
+<<<<<<< HEAD
 	rm -f $(PROGRAMS) */*.o */*.a build/build_config.h
+=======
+	-rm -f $(PROGRAMS) $(LIBRARY) */*.o ios-x86/*/*.o ios-arm/*/*.o
+	-rmdir -p ios-x86/* ios-arm/*
+
+$(LIBRARY): $(LIBOBJECTS)
+	rm -f $@
+	$(AR) -rs $@ $(LIBOBJECTS)
+>>>>>>> master
 
 db_bench: db/db_bench.o $(LIBOBJECTS) $(TESTUTIL)
 	$(CC) $(LDFLAGS) db/db_bench.o $(LIBOBJECTS) $(TESTUTIL) -o $@
@@ -128,8 +153,19 @@ version_edit_test: db/version_edit_test.o $(LIBOBJECTS) $(TESTHARNESS)
 write_batch_test: db/write_batch_test.o $(LIBOBJECTS) $(TESTHARNESS)
 	$(CC) $(LDFLAGS) db/write_batch_test.o $(LIBOBJECTS) $(TESTHARNESS) -o $@
 
+ifeq ($(PLATFORM), IOS)
+# For iOS, create universal object files to be used on both the simulator and
+# a device.
+.cc.o:
+	mkdir -p ios-x86/$(dir $@)
+	$(CC) $(CFLAGS) -isysroot /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk -arch i686 $< -o ios-x86/$@
+	mkdir -p ios-arm/$(dir $@)
+	$(CC) $(CFLAGS) -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk -arch armv6 -arch armv7 $< -o ios-arm/$@
+	lipo ios-x86/$@ ios-arm/$@ -create -output $@
+else
 .cc.o:
 	$(CC) $(CFLAGS) $< -o $@
+endif
 
 # TODO(gabor): dependencies for .o files
 # TODO(gabor): Build library
