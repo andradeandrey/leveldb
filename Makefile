@@ -6,7 +6,7 @@ CC = g++
 
 # Uncomment one of the following to switch between debug and opt mode
 #OPT = -O2 -DNDEBUG
-OPT = -g2 -fPIC
+OPT = -g -fPIC -O2 -NDEBUG
 
 CFLAGS = -c -DLEVELDB_PLATFORM_STD -I. -I./include $(OPT)
 

@@ -35,21 +35,6 @@
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
     "fillseq,"
-    "fillsync,"
-    "fillrandom,"
-    "overwrite,"
-    "readrandom,"
-    "readrandom,"  // Extra run to allow previous compactions to quiesce
-    "readseq,"
-    "readreverse,"
-    "compact,"
-    "readrandom,"
-    "readseq,"
-    "readreverse,"
-    "fill100K,"
-    "crc32c,"
-    "snappycomp,"
-    "snappyuncomp,"
     ;
 
 // Number of key/values to place in database
@@ -59,7 +44,7 @@ static int FLAGS_num = 1000000;
 static int FLAGS_reads = -1;
 
 // Size of each value
-static int FLAGS_value_size = 100;
+static int FLAGS_value_size = 10240;
 
 // Arrange to generate values that shrink to this fraction of
 // their original size after compression
@@ -353,7 +338,7 @@ class Benchmark {
       WriteOptions write_options;
       bool known = true;
       if (name == Slice("fillseq")) {
-        Write(write_options, SEQUENTIAL, FRESH, num_, FLAGS_value_size, 1);
+        Write(write_options, SEQUENTIAL, FRESH, num_, FLAGS_value_size, 100);
       } else if (name == Slice("fillbatch")) {
         Write(write_options, SEQUENTIAL, FRESH, num_, FLAGS_value_size, 1000);
       } else if (name == Slice("fillrandom")) {
